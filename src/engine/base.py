@@ -15,12 +15,14 @@ CHANNEL_URLS = {
 class _EngineBase:
     def __init__(self, channel: str, api_key: str, batch_size: int = 100):
 
-        self.channel = channel
         if channel.lower() not in CHANNEL_URLS:
             warnings.warn(
                 f"`{channel}` is not in {list(CHANNEL_URLS.keys())}."
                 "It is interpreted as endpoint URL."
             )
+            self.channel = channel
+        else:
+            self.channel = channel.lower()
         self.base_url = CHANNEL_URLS.get(channel.lower(), channel)
         self.api_key = api_key
         self.batch_size = max(batch_size, 1)
