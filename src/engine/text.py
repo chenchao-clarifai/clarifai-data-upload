@@ -19,6 +19,16 @@ class TextClassification(_EngineBase):
     def to_proto(
         self, text: str, labels: List[str]
     ) -> transform.data.resources_pb2.Input:
+        """
+        to_proto.
+
+        Args:
+            text (str): raw text string
+            labels (List[str]): list of string labels
+
+        Returns:
+            resources_pb2.Input: input proto
+        """
         raw_text = transform.raw_text_to_proto(text)
         concepts = [transform.label_to_concept_proto(l) for l in labels]
         return transform.to_input(text=raw_text, concepts=concepts)
