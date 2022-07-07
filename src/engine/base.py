@@ -22,7 +22,7 @@ class RegisteredEngine(type):
         return new_cls
 
 
-class _EngineBase(meta=RegisteredEngine):
+class _EngineBase(metaclass=RegisteredEngine):
     def __init__(self, channel: str, api_key: str, batch_size: int = 100):
 
         if channel.lower() not in CHANNEL_URLS:
