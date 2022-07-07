@@ -1,5 +1,6 @@
 import warnings
-from typing import Tuple
+from collections import Counter
+from typing import Any, Dict, Tuple
 
 from clarifai_grpc.channel.clarifai_channel import ClarifaiChannel
 from clarifai_grpc.grpc.api import resources_pb2, service_pb2, service_pb2_grpc
@@ -25,11 +26,17 @@ class RegisteredEngine(type):
 
 
 class _EngineBase(metaclass=RegisteredEngine):
-    def __init__(self, channel: str, api_key: str, batch_size: int = MAX_BATCH_SIZE):
+    def __init__(
+        self,
+        channel: str,
+        api_key: str,
+        batch_size: int = MAX_BATCH_SIZE,
+        max_num_of_trials: int = 100,
+    ):
 
         if channel.lower() not in CHANNEL_URLS:
             warnings.warn(
-                f"`{channel}` is not in {list(CHANNEL_URLS.keys())}."
+                f"`{channel}` is not in {list(CHANNEL_URLS.keys())}. "
                 "It is interpreted as endpoint URL."
             )
             self.channel = channel
@@ -37,13 +44,15 @@ class _EngineBase(metaclass=RegisteredEngine):
             self.channel = channel.lower()
         self.base_url = CHANNEL_URLS.get(channel.lower(), channel)
         self.api_key = api_key
-        self.batch_size = max(batch_size, 1)
+        self.batch_size = max(int(batch_size), 1)
+        self.max_num_of_trials = max(int(max_num_of_trials), 1)
         self._stub = service_pb2_grpc.V2Stub(
             ClarifaiChannel.get_grpc_channel(base=self.base_url)
         )
         self._buffer = []
         self._request = None
         self._response = None
+        self._error_logs = None
 
     @property
     def metadata(self) -> Tuple[Tuple[str, str]]:
@@ -60,11 +69,21 @@ class _EngineBase(metaclass=RegisteredEngine):
 
         self._request = service_pb2.PostInputsRequest(inputs=self._buffer)
         self._response = self._stub.PostInputs(self._request, metadata=self.metadata)
-        if self._response.status.code == status_code_pb2.SUCCESS:
-            self._reset_buffer()
+        error_codes_to_messages = {}
+        error_codes_statistics = Counter()
+        for _ in range(self.max_num_of_trials):
+            if self._response.status.code == status_code_pb2.SUCCESS:
+                self._reset_buffer()
+                return
+            error_codes_to_messages[self._response.status.code] = self._response.status
+            error_codes_statistics.update(self._response.status.code)
         else:
+            self._error_logs = dict(
+                messages=error_codes_to_messages, statistics=error_codes_statistics
+            )
             raise RuntimeError(
-                f"Upload is not successful (status code: {self._response.status})"
+                f"Upload was not successful. "
+                f"Max number of trials ({self.max_num_of_trials}) reached."
             )
 
     def _reset_buffer(self):
@@ -86,8 +105,9 @@ class _EngineBase(metaclass=RegisteredEngine):
         if self._check_if_buffer_is_full():
             self.submit()
 
-        data = self.to_proto(**kwargs)
-        self._buffer.append(resources_pb2.Input(data=data))
+        if kwargs:
+            data = self.to_proto(**kwargs)
+            self._buffer.append(resources_pb2.Input(data=data))
 
     def __repr__(self) -> str:
         args = []
@@ -98,10 +118,12 @@ class _EngineBase(metaclass=RegisteredEngine):
 
         return f"{self.__class__.__name__}({args})"
 
-    def info(self) -> str:
+    def info(self) -> Dict[str, Any]:
 
-        out = []
+        out = {}
         for k, v in self.__dict__.items():
-            out.append(f"{k}: {v}")
+            if k.startswith("_"):
+                continue
+            out[k] = v
 
-        return "\n".join(out)
+        return out
