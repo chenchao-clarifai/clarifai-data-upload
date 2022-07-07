@@ -1,1 +1,2 @@
 clarifai-grpc
+pytest
