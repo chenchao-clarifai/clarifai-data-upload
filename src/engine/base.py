@@ -77,8 +77,6 @@ class _EngineBase:
         data = self.to_proto(**kwargs)
         self._buffer.append(resources_pb2.Input(data=data))
 
-        self.submit()
-
     def __repr__(self) -> str:
         args = []
         args.append(f"channel={self.channel}")
@@ -87,3 +85,11 @@ class _EngineBase:
         args = ", ".join(args)
 
         return f"{self.__class__.__name__}({args})"
+
+    def info(self) -> str:
+
+        out = []
+        for k, v in self.__dict__.items():
+            out.append(f"{k}: {v}")
+
+        return "\n".join(out)
