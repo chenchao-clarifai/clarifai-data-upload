@@ -11,8 +11,18 @@ CHANNEL_URLS = {
     "staging": "api-staging.clarifai.com",
 }
 
+REGISTRY = []
 
-class _EngineBase:
+
+class RegisteredEngine(type):
+    def __new__(cls, name, bases, dct):
+        new_cls = super().__new__(cls, name, bases, dct)
+        if not name.startswith("_"):
+            REGISTRY.append(new_cls)
+        return new_cls
+
+
+class _EngineBase(meta=RegisteredEngine):
     def __init__(self, channel: str, api_key: str, batch_size: int = 100):
 
         if channel.lower() not in CHANNEL_URLS:
