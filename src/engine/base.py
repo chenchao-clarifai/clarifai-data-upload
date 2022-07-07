@@ -111,6 +111,16 @@ class _EngineBase(metaclass=RegisteredEngine):
         else:  # if no kwargs are passed in, do force submit
             self.submit()
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args, **kwargs):
+        try:
+            # force submit the remaining data
+            self.submit()
+        except RuntimeError as e:
+            raise RuntimeError("Unable to close the upload pipeline.") from e
+
     def __repr__(self) -> str:
         args = []
         args.append(f"channel={self.channel}")
