@@ -3,8 +3,10 @@ from collections import Counter
 from typing import Any, Dict, Tuple
 
 from clarifai_grpc.channel.clarifai_channel import ClarifaiChannel
-from clarifai_grpc.grpc.api import resources_pb2, service_pb2, service_pb2_grpc
+from clarifai_grpc.grpc.api import resources_pb2, service_pb2_grpc
 from clarifai_grpc.grpc.api.status import status_code_pb2
+
+from .. import transform
 
 CHANNEL_URLS = {
     "prod": "api.clarifai.com",
@@ -26,6 +28,17 @@ class RegisteredEngine(type):
 
 
 class _EngineBase(metaclass=RegisteredEngine):
+    """
+    The Base Class for all data uploader engines.
+
+    __init__:
+        Args:
+            channel (str): tag in `dev`, `staging`, `prod` or custom endpoint
+            api_key (str): app api key
+            batch_size (int, optional): batch size of inputs. Defaults to MAX_BATCH_SIZE.
+            max_num_of_trials (int, optional): max number of trials. Defaults to 100.
+    """
+
     def __init__(
         self,
         channel: str,
@@ -33,6 +46,13 @@ class _EngineBase(metaclass=RegisteredEngine):
         batch_size: int = MAX_BATCH_SIZE,
         max_num_of_trials: int = 100,
     ):
+        """
+        Args:
+            channel (str): tag in `dev`, `staging`, `prod` or custom endpoint
+            api_key (str): app api key
+            batch_size (int, optional): batch size of inputs. Defaults to MAX_BATCH_SIZE.
+            max_num_of_trials (int, optional): max number of trials. Defaults to 100.
+        """
 
         if channel.lower() not in CHANNEL_URLS:
             warnings.warn(
@@ -67,7 +87,7 @@ class _EngineBase(metaclass=RegisteredEngine):
         if not self._buffer:
             return
 
-        self._request = service_pb2.PostInputsRequest(inputs=self._buffer)
+        self._request = transform.input_batch_to_request(self._buffer)
         self._response = self._stub.PostInputs(self._request, metadata=self.metadata)
         error_codes_to_messages = {}
         error_codes_statistics = Counter()
