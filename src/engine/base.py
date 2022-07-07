@@ -13,6 +13,8 @@ CHANNEL_URLS = {
 
 REGISTRY = []
 
+MAX_BATCH_SIZE = 128
+
 
 class RegisteredEngine(type):
     def __new__(cls, name, bases, dct):
@@ -23,7 +25,7 @@ class RegisteredEngine(type):
 
 
 class _EngineBase(metaclass=RegisteredEngine):
-    def __init__(self, channel: str, api_key: str, batch_size: int = 100):
+    def __init__(self, channel: str, api_key: str, batch_size: int = MAX_BATCH_SIZE):
 
         if channel.lower() not in CHANNEL_URLS:
             warnings.warn(
