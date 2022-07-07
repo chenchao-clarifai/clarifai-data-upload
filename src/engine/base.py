@@ -92,7 +92,7 @@ class _EngineBase(metaclass=RegisteredEngine):
     def _check_if_buffer_is_full(self) -> bool:
         return len(self._buffer) == self.batch_size
 
-    def to_proto(self, *args, **kwargs) -> resources_pb2.Data:
+    def to_proto(self, *args, **kwargs) -> resources_pb2.Input:
         raise NotImplementedError(
             "This method will convert python inputs to proto `resource_pb2.Data`"
         )
@@ -106,8 +106,7 @@ class _EngineBase(metaclass=RegisteredEngine):
             self.submit()
 
         if kwargs:
-            data = self.to_proto(**kwargs)
-            self._buffer.append(resources_pb2.Input(data=data))
+            self._buffer.append(self.to_proto(**kwargs))
         else:  # if no kwargs are passed in, do force submit
             self.submit()
 
