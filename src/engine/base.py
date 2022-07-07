@@ -108,6 +108,8 @@ class _EngineBase(metaclass=RegisteredEngine):
         if kwargs:
             data = self.to_proto(**kwargs)
             self._buffer.append(resources_pb2.Input(data=data))
+        else:  # if no kwargs are passed in, do force submit
+            self.submit()
 
     def __repr__(self) -> str:
         args = []
