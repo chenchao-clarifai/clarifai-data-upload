@@ -96,7 +96,7 @@ class _EngineBase(metaclass=RegisteredEngine):
                 self._reset_buffer()
                 return
             error_codes_to_messages[self._response.status.code] = self._response.status
-            error_codes_statistics.update(self._response.status.code)
+            error_codes_statistics.update([self._response.status.code])
         else:
             self._error_logs = dict(
                 messages=error_codes_to_messages, statistics=error_codes_statistics
