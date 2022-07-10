@@ -68,7 +68,7 @@ class _EngineBase(metaclass=RegisteredEngine):
         self.api_key = api_key
         self.batch_size = max(int(batch_size), 1)
         self.max_num_of_trials = max(int(max_num_of_trials), 1)
-        self.current_count = 0
+        self.current_count = current_count
         self._stub = service_pb2_grpc.V2Stub(
             ClarifaiChannel.get_grpc_channel(base=self.base_url)
         )
