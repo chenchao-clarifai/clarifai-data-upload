@@ -45,6 +45,7 @@ class _EngineBase(metaclass=RegisteredEngine):
         api_key: str,
         batch_size: int = MAX_BATCH_SIZE,
         max_num_of_trials: int = 100,
+        current_count: int = 0,
     ):
         """
         Args:
@@ -52,6 +53,7 @@ class _EngineBase(metaclass=RegisteredEngine):
             api_key (str): app api key
             batch_size (int, optional): batch size of inputs. Defaults to MAX_BATCH_SIZE.
             max_num_of_trials (int, optional): max number of trials. Defaults to 100.
+            current_count (int, optional): counting starts from `current_count`
         """
 
         if channel.lower() not in CHANNEL_URLS:
@@ -66,6 +68,7 @@ class _EngineBase(metaclass=RegisteredEngine):
         self.api_key = api_key
         self.batch_size = max(int(batch_size), 1)
         self.max_num_of_trials = max(int(max_num_of_trials), 1)
+        self.current_count = 0
         self._stub = service_pb2_grpc.V2Stub(
             ClarifaiChannel.get_grpc_channel(base=self.base_url)
         )
@@ -79,7 +82,7 @@ class _EngineBase(metaclass=RegisteredEngine):
         return (("authorization", f"Key {self.api_key}"),)
 
     @property
-    def count(self) -> int:
+    def buffer_size(self) -> int:
         return len(self._buffer)
 
     def submit(self):
@@ -127,6 +130,7 @@ class _EngineBase(metaclass=RegisteredEngine):
 
         if kwargs:
             self._buffer.append(self.to_proto(**kwargs))
+            self.current_count += 1
         else:  # if no kwargs are passed in, do force submit
             self.submit()
 
@@ -145,6 +149,7 @@ class _EngineBase(metaclass=RegisteredEngine):
         args.append(f"channel={self.channel}")
         args.append(f"api_key={self.api_key}")
         args.append(f"batch_size={self.batch_size}")
+        args.append(f"current_count={self.current_count}")
         args = ", ".join(args)
 
         return f"{self.__class__.__name__}({args})"
