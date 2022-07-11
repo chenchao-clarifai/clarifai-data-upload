@@ -1,7 +1,10 @@
+import warnings
 from typing import List
 
 from .. import transform
 from .base import _EngineBase
+
+MAX_RAW_TEXT_WORD_COUNT = 500
 
 
 class TextClassification(_EngineBase):
@@ -29,6 +32,14 @@ class TextClassification(_EngineBase):
         Returns:
             resources_pb2.Input: input proto
         """
+        words = text.split()
+        if len(words) > MAX_RAW_TEXT_WORD_COUNT:
+            warnings.warn(
+                f"Current word count ({len(words)}) > "
+                f"max supported word count ({MAX_RAW_TEXT_WORD_COUNT}). "
+                "The text will be truncated."
+            )
+            text = " ".join(words[:MAX_RAW_TEXT_WORD_COUNT])
         raw_text = transform.raw_text_to_proto(text)
         concepts = [transform.label_to_concept_proto(l) for l in labels]
         return transform.to_input(text=raw_text, concepts=concepts)
