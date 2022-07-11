@@ -1,6 +1,11 @@
 from ..engine import base
 
 
+class _UnittestEngine(base._EngineBase):
+    def to_proto(self, *args, **kwargs):
+        return self.current_count
+
+
 def test_channels():
     dev = base._EngineBase("dev", "xyz")
     staging = base._EngineBase("staging", "xyz")
@@ -26,3 +31,11 @@ def test_context():
     with base._EngineBase("prod", "xyz") as prod:
         prod()
         print("nothing")
+
+
+def test_count():
+    up = _UnittestEngine("abc", "xyz", batch_size=200, current_count=3)
+    assert up.current_count == 3
+    for i in range(10):
+        up(key="nothing")
+        assert up.current_count == i + 1 + 3
