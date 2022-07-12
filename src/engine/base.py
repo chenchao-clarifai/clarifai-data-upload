@@ -99,7 +99,7 @@ class _EngineBase(metaclass=RegisteredEngine):
                 )
                 break
             except Exception as e:
-                warnings.warn(e)
+                warnings.warn(f"The following exception was raised: {repr(e)}.")
                 continue
         else:
             raise RuntimeError(
