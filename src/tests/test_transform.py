@@ -1,3 +1,5 @@
+import PIL
+
 from ..transform import data, image, label, text
 
 
@@ -24,7 +26,6 @@ def test_label():
 
 
 def test_image():
-    import PIL
 
     im = PIL.Image.new(mode="RGB", size=(256, 500))
     ip = image.pil_to_proto(im)
@@ -38,10 +39,13 @@ def test_data():
     t = text.raw_text_to_proto("Hello World")
     c = label.label_to_concept_proto("cat")
     d = label.label_to_concept_proto("dog")
-    input_proto = data.to_input(text=t, concepts=[c, d])
+    im = PIL.Image.new(mode="RGB", size=(256, 500))
+    i = image.pil_to_proto(im)
+    input_proto = data.to_input(text=t, concepts=[c, d], image=i)
     assert input_proto.data.text == t
     assert input_proto.data.concepts[0] == c
     assert input_proto.data.concepts[1] == d
+    assert input_proto.data.image == i
 
     input_batch = data.input_batch_to_request([input_proto])
     assert input_batch.inputs[0] == input_proto

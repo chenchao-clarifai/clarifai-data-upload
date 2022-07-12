@@ -10,3 +10,6 @@ def test_text_upload():
         " ".join(["a"] * (text.MAX_RAW_TEXT_WORD_COUNT + 100)), ["1"]
     )
     assert len(inp.data.text.raw.split()) == text.MAX_RAW_TEXT_WORD_COUNT
+    assert inp.data.concepts[0].id == "1"
+    assert inp.data.concepts[0].name == "1"
+    assert inp.data.concepts[0].value == 1.0
