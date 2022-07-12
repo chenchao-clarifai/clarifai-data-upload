@@ -90,8 +90,24 @@ class _EngineBase(metaclass=RegisteredEngine):
         if not self._buffer:
             return
 
+        # create stub
         self._request = transform.input_batch_to_request(self._buffer)
-        self._response = self._stub.PostInputs(self._request, metadata=self.metadata)
+        for _ in range(self.max_num_of_trials):
+            try:
+                self._response = self._stub.PostInputs(
+                    self._request, metadata=self.metadata
+                )
+                break
+            except Exception as e:
+                warnings.warn(e)
+                continue
+        else:
+            raise RuntimeError(
+                f"Stub creation was not successful. "
+                f"Max number of trials ({self.max_num_of_trials}) reached."
+            )
+
+        # submit stub
         error_codes_to_messages = {}
         error_codes_statistics = Counter()
         for _ in range(self.max_num_of_trials):
