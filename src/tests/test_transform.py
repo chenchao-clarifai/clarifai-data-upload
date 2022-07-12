@@ -1,4 +1,4 @@
-from ..transform import data, label, text
+from ..transform import data, image, label, text
 
 
 def test_text():
@@ -21,6 +21,17 @@ def test_label():
     assert mix.id == "cat-or-dog"
     assert mix.name == "cat or dog"
     assert mix.value == 1.0
+
+
+def test_image():
+    import PIL
+
+    im = PIL.Image.new(mode="RGB", size=(256, 500))
+    ip = image.pil_to_proto(im)
+    assert isinstance(ip, image.resources_pb2.Image)
+    assert ip.base64 == image.encode_image(im)
+
+    assert image.decode_image(image.encode_image(im)).size == im.size
 
 
 def test_data():
