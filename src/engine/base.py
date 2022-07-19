@@ -1,3 +1,4 @@
+import time
 import warnings
 from collections import Counter
 from typing import Any, Dict, Tuple
@@ -17,6 +18,8 @@ CHANNEL_URLS = {
 REGISTRY = []
 
 MAX_BATCH_SIZE = 128
+
+SLEEP = 0.01
 
 
 class RegisteredEngine(type):
@@ -116,6 +119,7 @@ class _EngineBase(metaclass=RegisteredEngine):
                 return
             error_codes_to_messages[self._response.status.code] = self._response.status
             error_codes_statistics.update([self._response.status.code])
+            time.sleep(SLEEP)
         else:
             self._error_logs = dict(
                 messages=error_codes_to_messages, statistics=error_codes_statistics
