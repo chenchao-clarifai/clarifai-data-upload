@@ -2,7 +2,7 @@ import numpy as np
 import PIL
 import pytest
 
-from ..transform import data, image, label, text
+from ..transform import data, image, label, mask, text
 
 
 def test_text():
@@ -36,7 +36,7 @@ def test_image():
     assert image.decode_image(image.encode_image(im)).size == im.size
 
 
-def test_mask():
+def test_pil_mask():
     arr = np.array([[i * j for i in range(10)] for j in range(10)]).astype(np.int8)
     im = PIL.Image.fromarray(arr, mode="L")
     ip = image.pil_mask_to_proto(im)
@@ -62,6 +62,16 @@ def test_mask():
         assert k >= 0 and k <= 81
         assert v.mode == "1"
         assert v.size == multiclass.size
+
+
+def test_mask():
+    arr = np.array([[i * j for i in range(10)] for j in range(10)]).astype(np.int8)
+    multiclass = PIL.Image.fromarray(arr, mode="L")
+    singles = image.multiclass_mask_to_binary_maskes(multiclass)
+    m = image.pil_mask_to_proto(singles[0])
+    region = mask.zip_concept_and_mask_to_region(label.label_to_concept_proto("cat"), m)
+    assert region.region_info.mask.image == m
+    assert region.data.concepts[0].id == "cat"
 
 
 def test_data():
