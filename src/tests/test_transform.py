@@ -1,4 +1,6 @@
+import numpy as np
 import PIL
+import pytest
 
 from ..transform import data, image, label, text
 
@@ -31,8 +33,35 @@ def test_image():
     ip = image.pil_to_proto(im)
     assert isinstance(ip, image.resources_pb2.Image)
     assert ip.base64 == image.encode_image(im)
-
     assert image.decode_image(image.encode_image(im)).size == im.size
+
+
+def test_mask():
+    arr = np.array([[i * j for i in range(10)] for j in range(10)]).astype(np.int8)
+    im = PIL.Image.fromarray(arr, mode="L")
+    ip = image.pil_mask_to_proto(im)
+    assert isinstance(ip, image.resources_pb2.Image)
+    assert ip.base64 == image.encode_image(im, "PNG")
+    assert image.decode_image(image.encode_image(im)).size == im.size
+
+    im = PIL.Image.fromarray(arr, mode="P")
+    ip = image.pil_mask_to_proto(im)
+    assert isinstance(ip, image.resources_pb2.Image)
+    assert ip.base64 == image.encode_image(im, "PNG")
+    assert image.decode_image(image.encode_image(im, "PNG")).size == im.size
+
+    with pytest.raises(ValueError):
+        im = PIL.Image.fromarray(arr, mode="P").convert("RGB")
+        ip = image.pil_mask_to_proto(im)
+        print(ip)
+
+    multiclass = PIL.Image.fromarray(arr, mode="L")
+    singles = image.multiclass_mask_to_binary_maskes(multiclass)
+    assert len(singles) == len(np.unique(arr))
+    for k, v in singles.items():
+        assert k >= 0 and k <= 81
+        assert v.mode == "1"
+        assert v.size == multiclass.size
 
 
 def test_data():
