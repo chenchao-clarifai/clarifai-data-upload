@@ -162,7 +162,7 @@ class _EngineBase(metaclass=RegisteredEngine):
         try:
             # force submit the remaining data
             self.submit()
-        except RuntimeError as e:
+        except Exception as e:
             raise RuntimeError("Unable to close the upload pipeline.") from e
 
     def __repr__(self) -> str:
