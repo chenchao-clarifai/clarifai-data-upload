@@ -80,6 +80,7 @@ def test_data():
     d = label.label_to_concept_proto("dog")
     im = PIL.Image.new(mode="RGB", size=(256, 500))
     i = image.pil_to_proto(im)
+
     input_proto = data.to_input(text=t, concepts=[c, d], image=i)
     assert input_proto.data.text == t
     assert input_proto.data.concepts[0] == c
@@ -88,3 +89,20 @@ def test_data():
 
     input_batch = data.input_batch_to_request([input_proto])
     assert input_batch.inputs[0] == input_proto
+
+    anno_proto = data.to_annotation(text=t, concepts=[c, d], image=i)
+    assert anno_proto.input_id == "none"
+    assert anno_proto.data.text == t
+    assert anno_proto.data.concepts[0] == c
+    assert anno_proto.data.concepts[1] == d
+    assert anno_proto.data.image == i
+
+    anno_proto = data.to_annotation(input_id="abc", text=t, concepts=[c, d], image=i)
+    assert anno_proto.input_id == "abc"
+    assert anno_proto.data.text == t
+    assert anno_proto.data.concepts[0] == c
+    assert anno_proto.data.concepts[1] == d
+    assert anno_proto.data.image == i
+
+    anno_batch = data.annotation_batch_to_request([anno_proto])
+    assert anno_batch.annotations[0] == anno_proto
