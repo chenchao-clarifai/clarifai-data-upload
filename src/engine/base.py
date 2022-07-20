@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import time
 import warnings
 from collections import Counter
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, List, NamedTuple, Tuple
 
 from clarifai_grpc.channel.clarifai_channel import ClarifaiChannel
 from clarifai_grpc.grpc.api import resources_pb2, service_pb2_grpc
@@ -20,6 +22,11 @@ REGISTRY = []
 MAX_BATCH_SIZE = 128
 
 SLEEP = 0.01
+
+
+class AnnotatedInput(NamedTuple):
+    input: resources_pb2.Input
+    annotation: resources_pb2.Annotation
 
 
 class RegisteredEngine(type):
@@ -41,6 +48,8 @@ class _EngineBase(metaclass=RegisteredEngine):
             batch_size (int, optional): batch size of inputs. Defaults to MAX_BATCH_SIZE.
             max_num_of_trials (int, optional): max number of trials. Defaults to 100.
     """
+
+    __has_annotation: bool = False
 
     def __init__(
         self,
@@ -76,8 +85,6 @@ class _EngineBase(metaclass=RegisteredEngine):
             ClarifaiChannel.get_grpc_channel(base=self.base_url)
         )
         self._buffer = []
-        self._request = None
-        self._response = None
         self._error_logs = None
 
     @property
@@ -85,50 +92,67 @@ class _EngineBase(metaclass=RegisteredEngine):
         return (("authorization", f"Key {self.api_key}"),)
 
     @property
+    def _has_annotation(self) -> bool:
+        return self.__has_annotation
+
+    @property
     def buffer_size(self) -> int:
         return len(self._buffer)
 
-    def submit(self):
+    def _inputs(self) -> List[resources_pb2.Input]:
+        return [item.input for item in self._buffer]
 
-        if not self._buffer:
-            return
+    def _annotations(self) -> List[resources_pb2.Annotation]:
+        return [item.annotation for item in self._buffer]
 
-        # create stub
-        self._request = transform.input_batch_to_request(self._buffer)
+    def _upload(self, mode: str):
+
+        mode = mode.strip().lower()
+
+        if mode == "input":
+            request = transform.input_batch_to_request(self._inputs())
+            post = self._stub.PostInputs
+        elif mode == "annotation":
+            request = transform.annotation_batch_to_request(self._annotations())
+            post = self._stub.PostAnnotations
+        else:
+            raise ValueError(
+                f"Mode `{mode}` is not supported. Only `input` and `annotation` are allowed."
+            )
+
+        error_codes_to_messages = {}
+        error_codes_statistics = Counter()
         for _ in range(self.max_num_of_trials):
             try:
-                self._response = self._stub.PostInputs(
-                    self._request, metadata=self.metadata
-                )
-                break
+                response = post(request, metadata=self.metadata)
+                if response.status.code == status_code_pb2.SUCCESS:
+                    break
+                else:
+                    error_codes_to_messages[response.status.code] = response.status
+                    error_codes_statistics.update([response.status.code])
             except Exception as e:
                 warnings.warn(f"The following exception was raised: {repr(e)}.")
                 time.sleep(SLEEP)
                 continue
         else:
-            raise RuntimeError(
-                f"Stub creation was not successful. "
-                f"Max number of trials ({self.max_num_of_trials}) reached."
-            )
-
-        # submit stub
-        error_codes_to_messages = {}
-        error_codes_statistics = Counter()
-        for _ in range(self.max_num_of_trials):
-            if self._response.status.code == status_code_pb2.SUCCESS:
-                self._reset_buffer()
-                return
-            error_codes_to_messages[self._response.status.code] = self._response.status
-            error_codes_statistics.update([self._response.status.code])
-            time.sleep(SLEEP)
-        else:
             self._error_logs = dict(
                 messages=error_codes_to_messages, statistics=error_codes_statistics
             )
             raise RuntimeError(
-                f"Upload was not successful. "
+                f"POST {mode} was not successful. "
                 f"Max number of trials ({self.max_num_of_trials}) reached."
             )
+
+    def submit(self):
+        if not self._buffer:
+            return
+        # POST input
+        self._upload("input")
+        # POST annotation
+        if self._has_annotation:
+            self._upload("annotation")
+        # upload was successful
+        self._reset_buffer()
 
     def _reset_buffer(self):
         self._buffer = []
@@ -136,9 +160,10 @@ class _EngineBase(metaclass=RegisteredEngine):
     def _check_if_buffer_is_full(self) -> bool:
         return len(self._buffer) == self.batch_size
 
-    def to_proto(self, *args, **kwargs) -> resources_pb2.Input:
+    def to_proto(self, *args, **kwargs) -> AnnotatedInput:
         raise NotImplementedError(
-            "This method will convert python inputs to proto `resource_pb2.Data`"
+            "This method will convert python inputs"
+            " to Input and Annotation protos in `AnnotatedInput`"
         )
 
     def __call__(self, *args, **kwargs):
