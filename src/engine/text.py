@@ -19,9 +19,7 @@ class TextClassification(_EngineBase):
             max_num_of_trials (int, optional): max number of trials. Defaults to 100.
     """
 
-    def to_proto(
-        self, text: str, labels: List[str]
-    ) -> transform.data.resources_pb2.Input:
+    def to_proto(self, text: str, labels: List[str]) -> AnnotatedInput:
         """
         to_proto.
 
