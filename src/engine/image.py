@@ -66,9 +66,9 @@ class ImageClassification(_EngineBase):
         return AnnotatedInput(input=transform.to_input(image=image, concepts=concepts))
 
 
-class ImageSegmentation(_EngineBase):
+class ImageSemanticSegmentation(_EngineBase):
     """
-    Image Segmentation Data Uploader.
+    Image Semantic Segmentation Data Uploader.
 
     __init__:
         Args:
@@ -100,9 +100,9 @@ class ImageSegmentation(_EngineBase):
         """
 
         image = transform.pil_to_proto(image)
-        input_proto = transform.to_input(image=image)
         if not input_id:
-            input_id = utils.proto_to_hash(input_proto)
+            input_id = utils.proto_to_hash(image)
+        input_proto = transform.to_input(id=input_id, image=image)
 
         annotations = []
         for l, m in zip(labels, binary_maskes):

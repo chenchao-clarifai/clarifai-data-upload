@@ -7,8 +7,8 @@ def _to_data(**kwargs) -> resources_pb2.Data:
     return resources_pb2.Data(**kwargs)
 
 
-def _to_input(data: resources_pb2.Data) -> resources_pb2.Input:
-    return resources_pb2.Input(data=data)
+def _to_input(input_id: str, data: resources_pb2.Data) -> resources_pb2.Input:
+    return resources_pb2.Input(id=input_id, data=data)
 
 
 def _to_annotation(input_id: str, data: resources_pb2.Data) -> resources_pb2.Annotation:
@@ -16,7 +16,8 @@ def _to_annotation(input_id: str, data: resources_pb2.Data) -> resources_pb2.Ann
 
 
 def to_input(**kwargs) -> resources_pb2.Input:
-    return _to_input(_to_data(**kwargs))
+    input_id = kwargs.pop("id", "none")
+    return _to_input(input_id, _to_data(**kwargs))
 
 
 def to_annotation(**kwargs) -> resources_pb2.Annotation:
