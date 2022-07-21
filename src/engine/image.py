@@ -18,7 +18,7 @@ class ImageOnly(_EngineBase):
             max_num_of_trials (int, optional): max number of trials. Defaults to 100.
     """
 
-    def to_proto(self, image: Image) -> transform.data.resources_pb2.Input:
+    def to_proto(self, image: Image) -> AnnotatedInput:
         """
         to_proto.
 
@@ -46,9 +46,7 @@ class ImageClassification(_EngineBase):
             max_num_of_trials (int, optional): max number of trials. Defaults to 100.
     """
 
-    def to_proto(
-        self, image: Image, labels: List[str]
-    ) -> transform.data.resources_pb2.Input:
+    def to_proto(self, image: Image, labels: List[str]) -> AnnotatedInput:
         """
         to_proto.
 
@@ -57,7 +55,7 @@ class ImageClassification(_EngineBase):
             labels (List[str]): list of string labels
 
         Returns:
-            resources_pb2.Input: input proto
+            AnnotatedInput: input proto
         """
 
         image = transform.pil_to_proto(image)
@@ -86,7 +84,7 @@ class ImageSemanticSegmentation(_EngineBase):
         labels: List[str],
         binary_maskes: List[Image],
         input_id: Optional[str] = None,
-    ) -> transform.data.resources_pb2.Input:
+    ) -> AnnotatedInput:
         """
         to_proto.
 
@@ -96,9 +94,9 @@ class ImageSemanticSegmentation(_EngineBase):
             binary_maskes (List[Image]): list of black-white PNG (mode=`1`)
 
         Returns:
-            resources_pb2.Input: input proto
+            AnnotatedInput: input proto and annotation
         """
-
+        image_size = image.size
         image = transform.pil_to_proto(image)
         if not input_id:
             input_id = utils.proto_to_hash(image)
@@ -106,6 +104,10 @@ class ImageSemanticSegmentation(_EngineBase):
 
         annotations = []
         for l, m in zip(labels, binary_maskes):
+            assert (
+                m.size == image_size
+            ), f"Mask size {m.size} is not image size {image_size}"
+            assert m.mode == "1", f"Binary mask got mode {m.mode}."
             region = transform.zip_concept_and_mask_to_region(
                 transform.label_to_concept_proto(l), transform.pil_mask_to_proto(m)
             )
