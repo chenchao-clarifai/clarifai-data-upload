@@ -49,7 +49,7 @@ class _EngineBase(metaclass=RegisteredEngine):
             max_num_of_trials (int, optional): max number of trials. Defaults to 100.
     """
 
-    __has_annotation: bool = False
+    _has_annotation: bool = False
 
     def __init__(
         self,
@@ -90,10 +90,6 @@ class _EngineBase(metaclass=RegisteredEngine):
     @property
     def metadata(self) -> Tuple[Tuple[str, str]]:
         return (("authorization", f"Key {self.api_key}"),)
-
-    @property
-    def _has_annotation(self) -> bool:
-        return self.__has_annotation
 
     @property
     def buffer_size(self) -> int:

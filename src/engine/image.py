@@ -46,8 +46,6 @@ class ImageClassification(_EngineBase):
             max_num_of_trials (int, optional): max number of trials. Defaults to 100.
     """
 
-    __has_annotation: bool = False
-
     def to_proto(
         self, image: Image, labels: List[str]
     ) -> transform.data.resources_pb2.Input:
@@ -80,7 +78,7 @@ class ImageSegmentation(_EngineBase):
             max_num_of_trials (int, optional): max number of trials. Defaults to 100.
     """
 
-    __has_annotation: bool = False
+    _has_annotation: bool = True
 
     def to_proto(
         self, image: Image, labels: List[str], binary_maskes: List[Image]

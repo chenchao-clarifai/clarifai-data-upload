@@ -6,12 +6,14 @@ from ..engine import image
 def test_image_upload():
 
     uploader = image.ImageOnly("localhost:1000", "xyz")
+    assert uploader._has_annotation is False
     print(uploader)
     print(uploader.info())
     inp = uploader.to_proto(PIL.Image.new("RGB", size=(256, 512)))
     assert len(inp.data.image.base64) > 0
 
     uploader = image.ImageClassification("localhost:1000", "xyz")
+    assert uploader._has_annotation is False
     print(uploader)
     print(uploader.info())
     inp = uploader.to_proto(PIL.Image.new("RGB", size=(256, 512)), ["1"])

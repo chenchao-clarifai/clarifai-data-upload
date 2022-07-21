@@ -2,6 +2,9 @@ from ..engine import base
 
 
 class _UnittestEngine(base._EngineBase):
+
+    _has_annotation = True
+
     def to_proto(self, *args, **kwargs):
         return self.current_count
 
@@ -31,6 +34,14 @@ def test_context():
     with base._EngineBase("prod", "xyz") as prod:
         prod()
         print("nothing")
+
+
+def test_has_annotation():
+    f = base._EngineBase("prod", "xyz")
+    assert f._has_annotation is False
+
+    _UnittestEngine("prod", "xyz")
+    assert _UnittestEngine._has_annotation is True
 
 
 def test_count():
