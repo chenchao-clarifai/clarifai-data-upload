@@ -89,8 +89,8 @@ class ImageSemanticSegmentation(_EngineBase):
 
         Args:
             image (Image): PIL Image object
-            labels (List[str]): list of string labels
-            binary_maskes (List[Image]): list of black-white PNG (mode=`1`)
+            label_to_binary_masks (Dict[str, Image]): string label and binary PNG mask
+            input_id (Optional[str]): custom input_id. Default to `None`
 
         Returns:
             AnnotatedInput: input proto and annotation
