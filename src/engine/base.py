@@ -99,7 +99,11 @@ class _EngineBase(metaclass=RegisteredEngine):
         return [item.input for item in self._buffer]
 
     def _annotations(self) -> List[resources_pb2.Annotation]:
-        return [item.annotation for item in self._buffer]
+        list_of_annotations = []
+        for item in self._buffer:
+            list_of_annotations.extend(item.annotation)
+            # item.annotation is a List of annotations
+        return list_of_annotations
 
     def _upload(self, mode: str):
 
