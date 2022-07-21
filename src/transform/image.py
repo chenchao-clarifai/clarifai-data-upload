@@ -46,8 +46,6 @@ def multiclass_mask_to_binary_maskes(pil_mask: Image) -> Dict[int, Image]:
 
     binary_maskes = {}
     for l in unique_ints:
-        binary_maskes[l] = PIL.Image.fromarray(
-            np.where(arr_mask == l, 1.0, 0.0), mode="1"
-        )
+        binary_maskes[l] = PIL.Image.fromarray(np.where(arr_mask == l, True, False))
 
     return binary_maskes
