@@ -56,7 +56,7 @@ def test_pil_mask():
         print(ip)
 
     multiclass = PIL.Image.fromarray(arr, mode="L")
-    singles = image.multiclass_mask_to_binary_maskes(multiclass)
+    singles = image.multiclass_mask_to_binary_masks(multiclass)
     assert len(singles) == len(np.unique(arr))
     for k, v in singles.items():
         assert k >= 0 and k <= 81
@@ -67,7 +67,7 @@ def test_pil_mask():
 def test_mask():
     arr = np.array([[i * j for i in range(10)] for j in range(10)]).astype(np.int8)
     multiclass = PIL.Image.fromarray(arr, mode="L")
-    singles = image.multiclass_mask_to_binary_maskes(multiclass)
+    singles = image.multiclass_mask_to_binary_masks(multiclass)
     m = image.pil_mask_to_proto(singles[0])
     region = mask.zip_concept_and_mask_to_region(label.label_to_concept_proto("cat"), m)
     assert region.region_info.mask.image == m
