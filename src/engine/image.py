@@ -1,8 +1,8 @@
-from typing import List
+from typing import List, Optional
 
 from PIL.Image import Image
 
-from .. import transform
+from .. import transform, utils
 from .base import AnnotatedInput, _EngineBase
 
 
@@ -81,7 +81,11 @@ class ImageSegmentation(_EngineBase):
     _has_annotation: bool = True
 
     def to_proto(
-        self, image: Image, labels: List[str], binary_maskes: List[Image]
+        self,
+        image: Image,
+        labels: List[str],
+        binary_maskes: List[Image],
+        input_id: Optional[str] = None,
     ) -> transform.data.resources_pb2.Input:
         """
         to_proto.
@@ -96,6 +100,17 @@ class ImageSegmentation(_EngineBase):
         """
 
         image = transform.pil_to_proto(image)
-        # region = todo region contains the concepts and maskes
+        input_proto = transform.to_input(image=image)
+        if not input_id:
+            input_id = utils.proto_to_hash(input_proto)
 
-        return transform.to_input(image=image)
+        annotations = []
+        for l, m in zip(labels, binary_maskes):
+            region = transform.zip_concept_and_mask_to_region(
+                transform.label_to_concept_proto(l), transform.pil_mask_to_proto(m)
+            )
+            annotations.append(
+                transform.to_annotation(input_id=input_id, regions=[region])
+            )
+
+        return AnnotatedInput(input=input_proto, annotation=annotations)

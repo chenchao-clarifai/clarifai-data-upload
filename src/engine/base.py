@@ -3,7 +3,7 @@ from __future__ import annotations
 import time
 import warnings
 from collections import Counter
-from typing import Any, Dict, List, NamedTuple, Optional, Tuple
+from typing import Any, Dict, List, NamedTuple, Tuple
 
 from clarifai_grpc.channel.clarifai_channel import ClarifaiChannel
 from clarifai_grpc.grpc.api import resources_pb2, service_pb2_grpc
@@ -26,7 +26,7 @@ SLEEP = 0.01
 
 class AnnotatedInput(NamedTuple):
     input: resources_pb2.Input
-    annotation: Optional[resources_pb2.Annotation] = None
+    annotation: List[resources_pb2.Annotation] = []
 
 
 class RegisteredEngine(type):

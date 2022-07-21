@@ -10,13 +10,13 @@ class _UnittestEngine(base._EngineBase):
 
 
 def test_annotated_input():
-    ai = base.AnnotatedInput(input="abc", annotation="xyz")
+    ai = base.AnnotatedInput(input="abc", annotation=["xyz"])
     assert ai.input == "abc"
-    assert ai.annotation == "xyz"
+    assert ai.annotation[0] == "xyz"
 
     ai = base.AnnotatedInput(input="abc")
     assert ai.input == "abc"
-    assert ai.annotation is None
+    assert ai.annotation == []
 
 
 def test_channels():
