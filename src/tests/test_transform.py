@@ -32,7 +32,7 @@ def test_image():
     im = PIL.Image.new(mode="RGB", size=(256, 500))
     ip = image.pil_to_proto(im)
     assert isinstance(ip, image.resources_pb2.Image)
-    assert ip.base64 == image.encode_image(im)
+    assert ip.base64 == image.pil_to_buffer(im)
     assert image.decode_image(image.encode_image(im)).size == im.size
 
 
@@ -41,13 +41,13 @@ def test_pil_mask():
     im = PIL.Image.fromarray(arr, mode="L")
     ip = image.pil_mask_to_proto(im)
     assert isinstance(ip, image.resources_pb2.Image)
-    assert ip.base64 == image.encode_image(im, "PNG")
+    assert ip.base64 == image.pil_to_buffer(im, "PNG")
     assert image.decode_image(image.encode_image(im)).size == im.size
 
     im = PIL.Image.fromarray(arr, mode="P")
     ip = image.pil_mask_to_proto(im)
     assert isinstance(ip, image.resources_pb2.Image)
-    assert ip.base64 == image.encode_image(im, "PNG")
+    assert ip.base64 == image.pil_to_buffer(im, "PNG")
     assert image.decode_image(image.encode_image(im, "PNG")).size == im.size
 
     with pytest.raises(ValueError):

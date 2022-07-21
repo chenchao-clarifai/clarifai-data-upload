@@ -10,10 +10,10 @@ from PIL.Image import Image
 MASK_MODES = {"P", "L", "1"}
 
 
-def pil_to_buffer(pil_image: Image, format: str = "JPEG") -> BytesIO:
-    bf = BytesIO()
-    pil_image.save(bf, format=format)
-    return bf
+def pil_to_buffer(pil_image: Image, format: str = "JPEG") -> ByteString:
+    buffered = BytesIO()
+    pil_image.save(buffered, format=format)
+    return buffered.getvalue()
 
 
 def encode_image(pil_image: Image, format: str = "JPEG") -> ByteString:
@@ -27,7 +27,7 @@ def decode_image(byte_string: bytes) -> Image:
 
 
 def pil_to_proto(pil_image: Image, format: str = "JPEG") -> resources_pb2.Image:
-    s = encode_image(pil_image, format)
+    s = pil_to_buffer(pil_image, format)
     return resources_pb2.Image(base64=s)
 
 
