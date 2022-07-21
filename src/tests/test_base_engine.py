@@ -9,6 +9,16 @@ class _UnittestEngine(base._EngineBase):
         return self.current_count
 
 
+def test_annotated_input():
+    ai = base.AnnotatedInput(input="abc", annotation="xyz")
+    assert ai.input == "abc"
+    assert ai.annotation == "xyz"
+
+    ai = base.AnnotatedInput(input="abc")
+    assert ai.input == "abc"
+    assert ai.annotation is None
+
+
 def test_channels():
     dev = base._EngineBase("dev", "xyz")
     staging = base._EngineBase("staging", "xyz")

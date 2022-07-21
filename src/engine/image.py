@@ -3,7 +3,7 @@ from typing import List
 from PIL.Image import Image
 
 from .. import transform
-from .base import _EngineBase
+from .base import AnnotatedInput, _EngineBase
 
 
 class ImageOnly(_EngineBase):
@@ -31,7 +31,7 @@ class ImageOnly(_EngineBase):
 
         image = transform.pil_to_proto(image)
 
-        return transform.to_input(image=image)
+        return AnnotatedInput(input=transform.to_input(image=image))
 
 
 class ImageClassification(_EngineBase):
@@ -63,7 +63,7 @@ class ImageClassification(_EngineBase):
         image = transform.pil_to_proto(image)
         concepts = [transform.label_to_concept_proto(l) for l in labels]
 
-        return transform.to_input(image=image, concepts=concepts)
+        return AnnotatedInput(input=transform.to_input(image=image, concepts=concepts))
 
 
 class ImageSegmentation(_EngineBase):

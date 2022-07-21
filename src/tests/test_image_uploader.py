@@ -9,14 +9,14 @@ def test_image_upload():
     assert uploader._has_annotation is False
     print(uploader)
     print(uploader.info())
-    inp = uploader.to_proto(PIL.Image.new("RGB", size=(256, 512)))
+    inp = uploader.to_proto(PIL.Image.new("RGB", size=(256, 512))).input
     assert len(inp.data.image.base64) > 0
 
     uploader = image.ImageClassification("localhost:1000", "xyz")
     assert uploader._has_annotation is False
     print(uploader)
     print(uploader.info())
-    inp = uploader.to_proto(PIL.Image.new("RGB", size=(256, 512)), ["1"])
+    inp = uploader.to_proto(PIL.Image.new("RGB", size=(256, 512)), ["1"]).input
     assert len(inp.data.image.base64) > 0
     assert inp.data.concepts[0].id == "1"
     assert inp.data.concepts[0].name == "1"
