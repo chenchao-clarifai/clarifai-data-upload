@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from PIL.Image import Image
 
@@ -81,8 +81,7 @@ class ImageSemanticSegmentation(_EngineBase):
     def to_proto(
         self,
         image: Image,
-        labels: List[str],
-        binary_maskes: List[Image],
+        label_to_binary_masks: Dict[str, Image],
         input_id: Optional[str] = None,
     ) -> AnnotatedInput:
         """
@@ -103,7 +102,7 @@ class ImageSemanticSegmentation(_EngineBase):
         input_proto = transform.to_input(id=input_id, image=image)
 
         annotations = []
-        for l, m in zip(labels, binary_maskes):
+        for l, m in label_to_binary_masks.items():
             assert (
                 m.size == image_size
             ), f"Mask size {m.size} is not image size {image_size}"

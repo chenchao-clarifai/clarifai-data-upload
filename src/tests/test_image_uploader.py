@@ -31,7 +31,7 @@ def test_segmentation_upload():
     print(uploader.info())
     img = PIL.Image.new("RGB", size=(256, 512))
     msk = PIL.Image.new("1", size=(256, 512))
-    anno_inp = uploader.to_proto(img, ["a", "b"], [msk, msk])
+    anno_inp = uploader.to_proto(img, dict(a=msk, b=msk))
     assert len(anno_inp.input.data.image.base64) > 0
     assert anno_inp.annotation[0].data.regions[0].data.concepts[0].id == "a"
     assert anno_inp.annotation[0].data.regions[0].data.concepts[0].name == "a"
