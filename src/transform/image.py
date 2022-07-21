@@ -38,14 +38,18 @@ def pil_mask_to_proto(pil_mask: Image) -> resources_pb2.Image:
         raise ValueError(f"The image mode {pil_mask.mode} is not in {MASK_MODES}.")
 
 
-def multiclass_mask_to_binary_maskes(pil_mask: Image) -> Dict[int, Image]:
+def multiclass_mask_to_binary_masks(
+    pil_mask: Image, ignore_idx: int = -1
+) -> Dict[int, Image]:
     if pil_mask.mode not in ("P", "L"):
-        raise ValueError("Multiclass maskes should be in `P` or `L` modes.")
+        raise ValueError("Multiclass masks should be in `P` or `L` modes.")
     arr_mask = np.array(pil_mask)
     unique_ints = np.unique(arr_mask)
 
-    binary_maskes = {}
+    binary_masks = {}
     for l in unique_ints:
-        binary_maskes[l] = PIL.Image.fromarray(np.where(arr_mask == l, True, False))
+        if l == ignore_idx:
+            continue
+        binary_masks[l] = PIL.Image.fromarray(np.where(arr_mask == l, True, False))
 
-    return binary_maskes
+    return binary_masks
